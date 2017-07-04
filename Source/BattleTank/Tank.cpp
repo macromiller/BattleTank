@@ -30,21 +30,50 @@ void ATank::Tick( float DeltaTime )
 void ATank::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	Super::SetupPlayerInputComponent(InputComponent);
-	InputComponent->BindAction("Clockwising", IE_Pressed, this, &ATank::TurnRight);
-	InputComponent->BindAction("Couterwising", IE_Pressed, this, &ATank::TurnLeft);
+	InputComponent->BindAxis("ClockWising", this, &ATank::TurnRight);
+	InputComponent->BindAxis("CounterWising", this, &ATank::TurnLeft);
+	InputComponent->BindAxis("TankRotation", this, &ATank::TankTurnRight);
+	InputComponent->BindAxis("TankMovement", this, &ATank::MoveForward);
+	InputComponent->BindAxis("BarrelRotation", this, &ATank::BarrelRotation);
 }
 
-void ATank::TurnLeft()
+void ATank::TurnLeft(float speed)
 {
-	Turret->SetRelativeRotation(FRotator(0.f,-45.f,0.f));
+	Turret->AddRelativeRotation(FRotator(0.f,speed,0.f));
 }
-void ATank::TurnRight()
+void ATank::TurnRight(float speed)
 {
-	Turret->SetRelativeRotation(FRotator(0.f, 45.f, 0.f));
+	Turret->AddRelativeRotation(FRotator(0.f, speed, 0.f));
 }
 
 void ATank::SetTurretChildActor(UChildActorComponent * TurretFromBP)
 {
 	Turret = TurretFromBP;
 }
+void ATank::SetBarrelChildActor(UChildActorComponent* BarrelFromBP)
+{
+	Barrel = BarrelFromBP;
+}
+void ATank::SetTankChildActor(UChildActorComponent* TankFromBP)
+{
+	Tank = TankFromBP;
+}
+void ATank::TankTurnRight(float speed)
+{
+	if (!Tank) { return; }
+	float Rotation = GetWorld()->DeltaTimeSeconds*speed*RotationSpeed;
+	Tank->AddRelativeRotation(FRotator(0.f, speed, 0.f));
+}
+void ATank::MoveForward(float speed)
+{
+	if (!Tank) { return; }
+	float distance = GetWorld()->DeltaTimeSeconds*speed*MoveSpeed;
+	Tank->AddRelativeLocation(Tank->GetForwardVector()*distance);
+}
 
+void ATank::BarrelRotation(float speed)
+{
+	if (!Barrel) { return; }
+	float Rotation = GetWorld()->DeltaTimeSeconds*speed*RotationSpeed;
+	Barrel->AddRelativeRotation(FRotator(speed, 0.0f, 0.f));
+}
